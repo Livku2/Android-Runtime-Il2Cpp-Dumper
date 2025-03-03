@@ -5,14 +5,14 @@ A runtime dumper for android
 ### Using the mod
 You have to decompile the apk, then go to smali/com/unity3d/player and open UnityPlayerActivity.smali
 
-then go to OnCreate and add this
+Then go to OnCreate and add this
 
 ```java
 const-string v0, "LivkuDumper"
 
 invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
 ```
-it should look something like this
+It should look something like this
 
 ![image](https://github.com/user-attachments/assets/6c57ee92-b97d-4e31-921a-ac5fa135fe60)
 
