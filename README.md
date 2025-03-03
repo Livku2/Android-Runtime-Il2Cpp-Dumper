@@ -27,7 +27,7 @@ It should look something like this
 2. Open the project in Android Studio
 4. Modify the string that says "Assembly-CSharp.dll" to the name of whatever assembly you want
 5. Build the project
-6. Copy the generated .so from `app/build/outputs/native/{debug/release}/lib{template}.so`
+6. Copy the generated .so from `app/build/outputs/native/release/libLivkuDumper.so`
 
 
 ### Todo
