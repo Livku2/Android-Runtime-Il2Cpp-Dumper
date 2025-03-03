@@ -14,7 +14,8 @@ invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
 ```
 it should look something like this
 
-![image](https://github.com/user-attachments/assets/cecc47d5-5905-4da5-aad4-1a4b285bb363)
+![image](https://github.com/user-attachments/assets/6c57ee92-b97d-4e31-921a-ac5fa135fe60)
+
 
 ### Changing the target assembly
 
