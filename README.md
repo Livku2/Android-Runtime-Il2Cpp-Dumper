@@ -3,7 +3,11 @@
 A runtime dumper for android
 
 ### Using the mod
-You have to decompile the apk, then go to smali/com/unity3d/player and open UnityPlayerActivity.smali
+You have to decompile the apk
+
+Put the .so file in the lib/arm64-v8a folder
+
+Then go to smali/com/unity3d/player and open UnityPlayerActivity.smali
 
 Then go to OnCreate and add this
 
