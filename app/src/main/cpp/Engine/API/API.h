@@ -19,7 +19,63 @@ namespace Il2Cpp {
 
     void *GetImageByName(const char *image);
 
+    bool IsEnum(const void *klass);
+
+    void *GetDomain();
+
+    const char* GetClassNamespace(void* klass);
+
+    int GetFieldFlags(void *field);
+
+    char *GetTypeName(void* type);
+
+    void* GetMethodParam(void *method, uint32_t index);
+
+    const void *GetClassAtCount(const void* image, size_t index);
+
+    size_t GetClassCount(const void* image);
+
+    void* ClassFromType(void *type);
+
+    uint64_t GetBase();
+
+    const void* GetClassProperties(void *klass, void* *iter);
+
+    const void* GetPropertySet(void *prop);
+
+    size_t GetFieldOffset(void *field);
+
+    void GetStaticFieldValueMan(void *field, void *value);
+
+    const void* GetPropertyGet(void *prop);
+
+    const char* GetPropertyName(void* prop);
+
+    uint32_t GetMethodFlags(const void *method, uint32_t * iflags);
+
+    const void *GetMethodReturnType(const void *method);
+
+    void **GetAssemblies(size_t size);
+
+    void *GetImage(const void *domain, void** val);
+
     void *GetClassType(const char *image, const char *namespaze, const char *clazz);
+
+    void *GetFieldType(void* field);
+
+    void* ClassGetMethods(void *klass, void* *iter);
+
+    void* ClassGetFields(void *klass, void* *iter);
+
+    const void* GetImage(const void *assembly);
+
+    const char* GetFieldName(void *field);
+
+    string GetMethodArgs(const void* method);
+
+    const int GetClassType2(void *clazz);
+
+    const char *GetClassName(void* klass);
 
     void *CreateArray(const char *image, const char *namespaze, const char *clazz, size_t length);
 

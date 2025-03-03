@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 
 # set the project name
-project("template")
+project("LivkuDumper")
 
 # Dobby setup
 macro(SET_OPTION option value)

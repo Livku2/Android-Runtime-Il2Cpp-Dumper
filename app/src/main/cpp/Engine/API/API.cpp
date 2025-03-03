@@ -6,15 +6,24 @@
 #include <locale>
 #include <codecvt>
 #include <Logger.h>
+#include <sstream>
 
 namespace {
     const void *(*il2cpp_assembly_get_image)(const void *assembly);
 
     void *(*il2cpp_domain_get)();
 
+    size_t (*il2cpp_image_get_class_count)(const void *image);
+
+    const void *(*il2cpp_image_get_class)(const void* image, size_t);
+
+    int (*il2cpp_method_get_param_count)(const void* method);
+
     void **(*il2cpp_domain_get_assemblies)(const void *domain, size_t *size);
 
     const char *(*il2cpp_image_get_name)(void *image);
+
+    const char *(*il2cpp_class_get_namespace)(void *klass);
 
     void *(*il2cpp_class_from_name)(const void *image, const char *namespaze, const char *name);
 
@@ -30,7 +39,11 @@ namespace {
 
     void *(*il2cpp_property_get_set_method)(void *prop);
 
+    void *(*il2cpp_class_from_type)(const void* type);
+
     size_t (*il2cpp_field_get_offset)(void *field);
+
+    void *(*il2cpp_field_get_type)(void *field);
 
     void (*il2cpp_field_static_get_value)(void *field, void *value);
 
@@ -52,13 +65,15 @@ namespace {
 
     void* (*il2cpp_class_get_methods)(void *klass, void* *iter);
 
+    void* (*il2cpp_class_get_fields)(void *klass, void* *iter);
+
     const char* (*il2cpp_method_get_name)(void *method);
+
+    const char* (*il2cpp_field_get_name)(void *field);
 
     void *(*il2cpp_class_get_interfaces)(void *klass, void **iter);
 
-    const char *(*il2cpp_class_get_name)(void *klass);
-
-     void *(*il2cpp_class_from_type)(int);
+    const char* (*il2cpp_class_get_name)(void *klass);
 
     int (*il2cpp_class_get_type)(void *);
 
@@ -69,7 +84,20 @@ namespace {
     void *(*il2cpp_class_get_nested_types)(void *, void **);
 
     void *(*il2cpp_object_new)(void *);
+
+    const void *(*il2cpp_method_get_return_type)(const void* method);
+
+    const void *(*il2cpp_class_get_properties)(void *klass, void* *iter);
+
+    const char *(*il2cpp_property_get_name)(void* prop);
+
+    uint32_t (*il2cpp_method_get_flags)(const void *method, uint32_t * iflags);
+
+    int (*il2cpp_field_get_flags)(void * field);
+
+    bool (*il2cpp_class_is_enum)(const void *klass);
 }
+
 // ================================================================================================================ //
 void *getExportFunction(void *handle, const char *name)
 {
@@ -142,9 +170,31 @@ int init(void *handle)
 
     il2cpp_domain_get = (void *(*)()) getExportFunction(handle, "il2cpp_domain_get");
 
+    il2cpp_class_is_enum = (bool (*)(const void*)) getExportFunction(handle, "il2cpp_class_is_enum");
+
+    il2cpp_field_get_flags = (int (*)(void *)) getExportFunction(handle, "il2cpp_field_get_flags");
+
+    il2cpp_method_get_flags = (uint32_t (*)(const void *, uint32_t *)) getExportFunction(handle, "il2cpp_method_get_flags");
+
+    il2cpp_property_get_name = (const char *(*)(void *)) getExportFunction(handle, "il2cpp_property_get_name");
+
+    il2cpp_class_get_properties = (const void *(*)(void*, void**)) getExportFunction(handle, "il2cpp_class_get_properties");
+
+    il2cpp_class_from_type = (void *(*)(const void*)) getExportFunction(handle, "il2cpp_class_from_type");
+
+    il2cpp_method_get_return_type = (const void *(*)(const void *)) getExportFunction(handle, "il2cpp_method_get_return_type");
+
+    il2cpp_method_get_param_count = (int (*)(const void*)) getExportFunction(handle, "il2cpp_method_get_param_count");
+
+    il2cpp_image_get_class_count = (size_t (*)(const void*)) getExportFunction(handle, "il2cpp_image_get_class_count");
+
+    il2cpp_image_get_class = (const void* (*)(const void*, size_t)) getExportFunction(handle, "il2cpp_image_get_class");
+
     il2cpp_domain_get_assemblies = (void **(*)(const void* , size_t*)) getExportFunction(handle, "il2cpp_domain_get_assemblies");
 
     il2cpp_image_get_name = (const char *(*)(void *)) getExportFunction(handle, "il2cpp_image_get_name");
+
+    il2cpp_class_get_namespace = (const char *(*)(void *)) getExportFunction(handle, "il2cpp_class_get_namespace");
 
     il2cpp_class_from_name = (void* (*)(const void*, const char*, const char *)) getExportFunction(handle, "il2cpp_class_from_name");
 
@@ -176,15 +226,19 @@ int init(void *handle)
 
     il2cpp_method_get_param = (void *(*)(void *, uint32_t)) getExportFunction(handle, "il2cpp_method_get_param");;
 
+    il2cpp_field_get_type = (void *(*)(void *)) getExportFunction(handle, "il2cpp_field_get_type");;
+
     il2cpp_class_get_methods = (void *(*)(void *, void **)) getExportFunction(handle, "il2cpp_class_get_methods");;
 
+    il2cpp_class_get_fields = (void *(*)(void *, void **)) getExportFunction(handle, "il2cpp_class_get_fields");;
+
     il2cpp_method_get_name = (const char *(*)(void *)) getExportFunction(handle, "il2cpp_method_get_name");;
+
+    il2cpp_field_get_name = (const char *(*)(void *)) getExportFunction(handle, "il2cpp_field_get_name");;
 
     il2cpp_class_get_interfaces = (void *(*)(void *, void **)) getExportFunction(handle, "il2cpp_class_get_interfaces");;
 
     il2cpp_class_get_name = (const char *(*)(void *)) getExportFunction(handle, "il2cpp_class_get_name");
-
-    il2cpp_class_from_type = (void *(*)(int)) getExportFunction(handle, "il2cpp_class_from_type");
 
     il2cpp_class_get_type = (int (*)(void *)) getExportFunction(handle, "il2cpp_class_get_type");
 
@@ -214,6 +268,125 @@ int Il2Cpp::Init(void *handle) {
     return init(handle);
 
 }
+
+void *Il2Cpp::GetDomain() {
+    return il2cpp_domain_get();
+}
+
+bool Il2Cpp::IsEnum(const void *klass){
+    return il2cpp_class_is_enum(klass);
+}
+
+void **Il2Cpp::GetAssemblies(size_t size) {
+    return il2cpp_domain_get_assemblies(il2cpp_domain_get(), &size);
+}
+
+
+
+const void *Il2Cpp::GetClassAtCount(const void *image, size_t index) {
+    return il2cpp_image_get_class(image, index);
+}
+
+const void *Il2Cpp::GetMethodReturnType(const void *method) {
+    return il2cpp_method_get_return_type(method);
+}
+
+size_t Il2Cpp::GetClassCount(const void *image) {
+    return il2cpp_image_get_class_count(image);
+}
+
+uint32_t Il2Cpp::GetMethodFlags(const void *method, uint32_t * iflags) {
+    return il2cpp_method_get_flags(method, iflags);
+}
+
+int Il2Cpp::GetFieldFlags(void *field) {
+    return il2cpp_field_get_flags(field);
+}
+
+const char* Il2Cpp::GetPropertyName(void* prop){
+    return il2cpp_property_get_name(prop);
+}
+
+void Il2Cpp::GetStaticFieldValueMan(void *field, void *value){
+    il2cpp_field_static_get_value(field, value);
+}
+
+const char* Il2Cpp::GetClassNamespace(void* klass){
+    return il2cpp_class_get_namespace(klass);
+}
+
+const char* Il2Cpp::GetClassName(void *klass) {
+    return il2cpp_class_get_name(klass);
+}
+
+const char* Il2Cpp::GetFieldName(void *field) {
+    return il2cpp_field_get_name(field);
+}
+
+void* Il2Cpp::ClassFromType(void *type) {
+    return il2cpp_class_from_type(type);
+}
+
+const void* Il2Cpp::GetClassProperties(void *klass, void* *iter){
+    return il2cpp_class_get_properties(klass, iter);
+}
+
+const void* Il2Cpp::GetPropertyGet(void *prop){
+    return il2cpp_property_get_get_method(prop);
+}
+
+const void* Il2Cpp::GetPropertySet(void *prop){
+    return il2cpp_property_get_set_method(prop);
+}
+
+uint64_t Il2Cpp::GetBase() {
+    Dl_info dlInfo;
+    if (dladdr((void *) il2cpp_domain_get_assemblies, &dlInfo)) {
+        if (dlInfo.dli_fbase) {
+            return reinterpret_cast<uint64_t>(dlInfo.dli_fbase);
+        }
+    }
+    return 0;
+}
+
+void *Il2Cpp::GetFieldType(void* field){
+    return il2cpp_field_get_type(field);
+}
+
+char* Il2Cpp::GetTypeName(void *type) {
+    return il2cpp_type_get_name(type);
+}
+
+void* Il2Cpp::ClassGetMethods(void *klass, void* *iter) {
+    return il2cpp_class_get_methods(klass, iter);
+}
+
+void* Il2Cpp::ClassGetFields(void *klass, void **iter) {
+    return il2cpp_class_get_fields(klass, iter);
+}
+
+void* Il2Cpp::GetMethodParam(void *method, uint32_t index){
+    return il2cpp_method_get_param(method, index);
+}
+
+size_t Il2Cpp::GetFieldOffset(void *field){
+    return il2cpp_field_get_offset(field);
+}
+
+std::string Il2Cpp::GetMethodArgs(const void* method) {
+    std::stringstream outPut;
+
+    int paramCount = il2cpp_method_get_param_count(method);
+    for (int i = 0; i < paramCount; i++){
+        void* parameterType = il2cpp_method_get_param(const_cast<void *>(method), i);
+
+        char* parameterTypeName = il2cpp_type_get_name(parameterType);
+        outPut << parameterTypeName << ", ";
+    }
+
+    return outPut.str();
+}
+
 // ================================================================================================================ //
 void *Il2Cpp::GetImageByName(const char *image) {
     size_t size;
@@ -273,6 +446,10 @@ void Il2Cpp::SetStaticFieldValue(const char *image, const char *namespaze, const
 
     il2cpp_field_static_set_value(field, value);
 }
+const int Il2Cpp::GetClassType2(void *clazz) {
+    return  il2cpp_class_get_type(clazz);
+}
+
 // ================================================================================================================ //
 void *Il2Cpp::GetClassType(const char *image, const char *namespaze, const char *clazz) {
     void *img = GetImageByName(image);

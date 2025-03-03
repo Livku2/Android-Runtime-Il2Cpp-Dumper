@@ -14,6 +14,7 @@
 #include "Vector2.hpp"
 #include "Matrix4x4.hpp"
 #include "Quaternion.hpp"
+#include "Flags.h"
 
 static inline float NormalizeAngle(float angle) {
     while (angle > 360)
