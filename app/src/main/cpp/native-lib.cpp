@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <fstream>
 
-        ProcMap map;
+ProcMap map;
 
 std::string getMethodModifier(uint32_t flags) {
     std::stringstream outPut;
