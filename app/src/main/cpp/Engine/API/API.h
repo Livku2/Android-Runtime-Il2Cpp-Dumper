@@ -15,6 +15,12 @@ namespace Il2Cpp {
 
     int Init(const char *lib);
 
+    void* InvokeMethod(void* instance, const char* methodName, const char* arg);
+
+    void* InvokeMethod(void* instance, const char* methodName);
+
+    void* GetFieldValue(void* instance, const char* fieldName);
+
     int Init(void *handle);
 
     void *GetImageByName(const char *image);
@@ -68,6 +74,8 @@ namespace Il2Cpp {
     void* ClassGetFields(void *klass, void* *iter);
 
     const void* GetImage(const void *assembly);
+
+    const char *GetImageName(const void *image);
 
     const char* GetFieldName(void *field);
 
