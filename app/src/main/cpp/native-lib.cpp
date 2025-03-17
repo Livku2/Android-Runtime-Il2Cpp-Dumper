@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <fstream>
+#include <array>
+
 
 ProcMap map;
 
@@ -165,7 +167,9 @@ std::string dumpMethods(void *klass) {
         auto classFromType = Il2Cpp::ClassFromType(const_cast<void *>(returnType));
         auto returnTypeName = Il2Cpp::GetClassName(classFromType);
 
-        auto va = reinterpret_cast<uint64_t>(method);
+        auto methodPointer = *(void**) method;
+
+        auto va = reinterpret_cast<uint64_t>(methodPointer);
         uint64_t offset = va - (uint64_t)map.startAddress;
 
         uint32_t iflags = 0;
@@ -191,25 +195,35 @@ const char *GetPackageName() {
     return (const char *) application_id;
 }
 
-void Dump(){
+string dumpImage(const char* imageName){
+    stringstream output;
+    auto image = Il2Cpp::GetImageByName(imageName);
+    auto classCount = Il2Cpp::GetClassCount(image);
+    for (int j = 0; j < classCount; ++j) {
+        auto klass = Il2Cpp::GetClassAtCount(image, j);
+        auto name = const_cast<char *>(Il2Cpp::GetClassName(const_cast<void *>(klass)));
+        auto nameSpace = const_cast<char *>(Il2Cpp::GetClassNamespace(const_cast<void *>(klass)));
+        auto methods = dumpMethods(const_cast<void *>(klass));
+        auto fields = dumpFields(const_cast<void *>(klass));
+        auto properties = dumpProperties(const_cast<void *>(klass));
+
+        output << "\n \nnamespace " << nameSpace << "\n{\n \tclass " << name << "\n\t{" << "\n"
+               << methods.c_str() << "\n\n" << fields.c_str() << "\n" << properties.c_str()
+               << "\n \t} \n }";
+    }
+
+    output << "\n\n";
+    return output.str();
+}
+
+void Dump() {
 
     std::stringstream output;
 
     output << "Dump: \n \n \n";
-
-    auto image = Il2Cpp::GetImageByName("Assembly-CSharp.dll");
-    auto classCount = Il2Cpp::GetClassCount(image);
-    for (int j = 0; j < classCount; ++j) {
-        auto klass = Il2Cpp::GetClassAtCount(image, j);
-        auto name = const_cast<char*>(Il2Cpp::GetClassName(const_cast<void*>(klass)));
-        auto nameSpace = const_cast<char*>(Il2Cpp::GetClassNamespace(const_cast<void*>(klass)));
-        auto methods = dumpMethods(const_cast<void*>(klass));
-        auto fields = dumpFields(const_cast<void*>(klass));
-        auto properties = dumpProperties(const_cast<void*>(klass));
-
-        output << "\n \nnamespace " << nameSpace << "\n{\n \tclass " << name << "\n\t{" << "\n" << methods.c_str() <<"\n\n" << fields.c_str() << "\n" << properties.c_str() << "\n \t} \n }";
-    }
     
+    output << dumpImage("Assembly-CSharp.dll");
+
     auto directory = std::string("/storage/emulated/0/Android/data/").append(
             GetPackageName()).append("/dump.cs");
 
