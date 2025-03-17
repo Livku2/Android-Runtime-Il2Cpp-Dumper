@@ -21,7 +21,9 @@ namespace {
 
     void **(*il2cpp_domain_get_assemblies)(const void *domain, size_t *size);
 
-    const char *(*il2cpp_image_get_name)(void *image);
+    const char *(*il2cpp_image_get_name)(const void *image);
+
+    void (*il2cpp_field_get_value)(void *obj, void* field, void* value);
 
     const char *(*il2cpp_class_get_namespace)(void *klass);
 
@@ -75,6 +77,8 @@ namespace {
 
     const char* (*il2cpp_class_get_name)(void *klass);
 
+    void* (*il2cpp_object_get_class)(void *obj);
+
     int (*il2cpp_class_get_type)(void *);
 
     void *(*il2cpp_class_get_parent)(void *);
@@ -105,8 +109,6 @@ void *getExportFunction(void *handle, const char *name)
     if (fn) {
         return fn;
     }
-
-    LOGI("%s: %p %s", __FUNCTION__, handle, name);
     return nullptr;
 }
 // ========================================================================================================================================== //
@@ -170,6 +172,10 @@ int init(void *handle)
 
     il2cpp_domain_get = (void *(*)()) getExportFunction(handle, "il2cpp_domain_get");
 
+    il2cpp_field_get_value = (void (*)(void*,void*,void*)) getExportFunction(handle, "il2cpp_field_get_value");
+
+    il2cpp_object_get_class = (void *(*)(void*)) getExportFunction(handle, "il2cpp_object_get_class");
+
     il2cpp_class_is_enum = (bool (*)(const void*)) getExportFunction(handle, "il2cpp_class_is_enum");
 
     il2cpp_field_get_flags = (int (*)(void *)) getExportFunction(handle, "il2cpp_field_get_flags");
@@ -192,7 +198,7 @@ int init(void *handle)
 
     il2cpp_domain_get_assemblies = (void **(*)(const void* , size_t*)) getExportFunction(handle, "il2cpp_domain_get_assemblies");
 
-    il2cpp_image_get_name = (const char *(*)(void *)) getExportFunction(handle, "il2cpp_image_get_name");
+    il2cpp_image_get_name = (const char *(*)(const void *)) getExportFunction(handle, "il2cpp_image_get_name");
 
     il2cpp_class_get_namespace = (const char *(*)(void *)) getExportFunction(handle, "il2cpp_class_get_namespace");
 
@@ -281,7 +287,124 @@ void **Il2Cpp::GetAssemblies(size_t size) {
     return il2cpp_domain_get_assemblies(il2cpp_domain_get(), &size);
 }
 
+const void *Il2Cpp::GetImage(const void *assembly) {
+    return il2cpp_assembly_get_image(assembly);
+}
 
+void* Il2Cpp::InvokeMethod(void* instance, const char* methodName, const char* arg) {
+    if (!instance || !methodName) {
+        LOGE("Instance or method name is null.");
+        return nullptr;
+    }
+
+    // Get the class of the instance
+    void* klass = il2cpp_object_get_class(instance);
+    if (!klass) {
+        LOGE("Failed to get class for object.");
+        return nullptr;
+    }
+
+    // Find the method in the class (assuming 1 parameter for now)
+    void* method = il2cpp_class_get_method_from_name(klass, methodName, 1);
+    if (!method) {
+        LOGE("Method not found: %s", methodName);
+        return nullptr;
+    }
+
+    // Convert the string argument into an Il2CppString*
+    Il2CppString* il2cppStrArg = il2cpp_string_new(arg);
+    if (!il2cppStrArg) {
+        LOGE("Failed to create Il2CppString for argument.");
+        return nullptr;
+    }
+
+    // Prepare parameters for the method call
+    void* params[1] = { il2cppStrArg };
+
+    // Prepare exception holder
+    void* exception = nullptr;
+
+    // Invoke the method
+    void* result = il2cpp_runtime_invoke(method, instance, params, &exception);
+
+    if (exception) {
+        LOGE("Exception thrown while invoking method: %s", methodName);
+        return nullptr;
+    }
+
+    return result;
+}
+
+void* Il2Cpp::InvokeMethod(void* instance, const char* methodName) {
+    if (!instance || !methodName) {
+        LOGE("Instance or method name is null.");
+        return nullptr;
+    }
+
+    // Get the class of the instance
+    void* klass = il2cpp_object_get_class(instance);
+    if (!klass) {
+        LOGE("Failed to get class for object.");
+        return nullptr;
+    }
+
+    // Find the method in the class (assuming 1 parameter for now)
+    void* method = il2cpp_class_get_method_from_name(klass, methodName, 1);
+    if (!method) {
+        LOGE("Method not found: %s", methodName);
+        return nullptr;
+    }
+
+    // Prepare parameters for the method call
+    void* params[0] = {  };
+
+    // Prepare exception holder
+    void* exception = nullptr;
+
+    // Invoke the method
+    void* result = il2cpp_runtime_invoke(method, instance, params, &exception);
+
+    if (exception) {
+        LOGE("Exception thrown while invoking method: %s", methodName);
+        return nullptr;
+    }
+
+    return result;
+}
+
+
+void* Il2Cpp::GetFieldValue(void* instance, const char* fieldName) {
+    if (!instance || !fieldName) {
+        LOGE("Instance or field name is null.");
+        return nullptr;
+    }
+
+    // Get the class of the instance
+    void* klass = il2cpp_object_get_class(instance);
+    if (!klass) {
+        LOGE("Failed to get class for object.");
+        return nullptr;
+    }
+
+    // Find the field in the class
+    void* field = il2cpp_class_get_field_from_name(klass, fieldName);
+    if (!field) {
+        LOGE("Field not found: %s", fieldName);
+        return nullptr;
+    }
+
+    // Retrieve the field value
+    void* fieldValue = nullptr;
+    il2cpp_field_get_value(instance, field, &fieldValue);
+
+    // Return the field value
+    return fieldValue;
+}
+
+
+const char *Il2Cpp::GetImageName(const void *image) {
+    return il2cpp_image_get_name(image);
+}
 
 const void *Il2Cpp::GetClassAtCount(const void *image, size_t index) {
     return il2cpp_image_get_class(image, index);
