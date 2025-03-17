@@ -33,8 +33,14 @@ It should look something like this
 ### Todo
 
 - [ ] Dump all assemblies
-- [ ] Fix Method Offsets
+- [x] Fix Method Offsets
 - [ ] Fix Formatting
+
+
+### Known Issues
+Sometimes the lib may cause crashes, this is most likely caused by the GetImageByName function as il2cpp_domain_get_assemblies can return nullptr
+
+I am still working on a fix for this but haven't found a work around just yet
 
 ### Credit
 
