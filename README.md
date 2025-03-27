@@ -42,6 +42,9 @@ Sometimes the lib may cause crashes, this is most likely caused by the GetImageB
 
 I am still working on a fix for this but haven't found a work around just yet
 
+
+Recently I have fixed this error, but another one came up so I am working on fixing that
+
 ### Credit
 
 - [Zygisk Il2CppDumper](https://github.com/Perfare/Zygisk-Il2CppDumper) - Dumper I used as a reference
