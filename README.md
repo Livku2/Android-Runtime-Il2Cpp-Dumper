@@ -32,9 +32,9 @@ It should look something like this
 
 ### Todo
 
-- [ ] Dump all assemblies
+- [x] Dump all assemblies
 - [x] Fix Method Offsets
-- [ ] Fix Formatting
+- [x] Fix Formatting
 
 
 ### Known Issues
