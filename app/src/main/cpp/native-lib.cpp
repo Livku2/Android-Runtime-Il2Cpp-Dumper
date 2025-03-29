@@ -8,9 +8,26 @@
 #include <fcntl.h>
 #include <fstream>
 #include <array>
+#include <utility>
 
 
 ProcMap map;
+
+const char* GetBetterName(const char* returnTypeName) {
+    if (strcmp(returnTypeName, "Void") == 0 || strcmp(returnTypeName, "System.Void") == 0) {
+        return "void";
+    }
+    if (strcmp(returnTypeName, "Single") == 0) {
+        return "float";
+    }
+    if (strcmp(returnTypeName, "Int32") == 0) {
+        return "int";
+    }
+    if (strcmp(returnTypeName, "Boolean") == 0) {
+        return "bool";
+    }
+    return returnTypeName;
+}
 
 std::string getMethodModifier(uint32_t flags) {
     std::stringstream outPut;
@@ -57,7 +74,6 @@ std::string getMethodModifier(uint32_t flags) {
     }
     return outPut.str();
 }
-
 std::string dumpProperties(void *klass){
     std::stringstream outPut;
 
@@ -81,7 +97,8 @@ std::string dumpProperties(void *klass){
             propertyClass = Il2Cpp::ClassFromType(param);
         }
         if (propertyClass) {
-            outPut << " " << Il2Cpp::GetClassName(propertyClass) << " " << propertyName << " { ";
+            auto fixname = GetBetterName(Il2Cpp::GetClassName(propertyClass));
+            outPut << fixname << " " << propertyName << " { ";
             if (get) {
                 outPut << "get; ";
             }
@@ -151,7 +168,9 @@ std::string dumpFields(void *klass){
             outPut << " = " << std::dec << val;
         }
 
-        outPut << Il2Cpp::GetClassName(field_class) << " " << fieldName << "; // 0x" << std::hex << Il2Cpp::GetFieldOffset(field) << "\n";
+        auto fixName = GetBetterName(Il2Cpp::GetClassName(field_class));
+
+        outPut << fixName << " " << fieldName << "; // 0x" << std::hex << Il2Cpp::GetFieldOffset(field) << "\n";
     }
 
     return outPut.str();
@@ -166,6 +185,7 @@ std::string dumpMethods(void *klass) {
         auto returnType = Il2Cpp::GetMethodReturnType(method);
         auto classFromType = Il2Cpp::ClassFromType(const_cast<void *>(returnType));
         auto returnTypeName = Il2Cpp::GetClassName(classFromType);
+        auto fixedName = GetBetterName(returnTypeName);
 
         auto methodPointer = *(void**) method;
 
@@ -177,8 +197,8 @@ std::string dumpMethods(void *klass) {
         auto args = Il2Cpp::GetMethodArgs(method);
 
         outPut << "\t\t// VA: 0x" << std::hex << va
-               << " | Offset: 0x" << std::hex << offset << "\n\t\t"
-               << getMethodModifier(flags) << " " << returnTypeName << " "
+               << " | RVA: 0x" << std::hex << offset << "\n\t\t"
+               << getMethodModifier(flags) << fixedName << " "
                << methodName << "(" << args << ")" << "\n\t\t{ \n \n \t\t} \n \n";
     }
 
@@ -194,15 +214,18 @@ const char *GetPackageName() {
     }
     return (const char *) application_id;
 }
-
-string dumpImage(const char* imageName){
+string dumpImage(/*const char* imageName*/const void* image){
     stringstream output;
-    auto image = Il2Cpp::GetImageByName(imageName);
+    //auto image = Il2Cpp::GetImageByName(imageName);
     auto classCount = Il2Cpp::GetClassCount(image);
+    LOGI("CLASS COUNT: %i", classCount);
     for (int j = 0; j < classCount; ++j) {
         auto klass = Il2Cpp::GetClassAtCount(image, j);
+        LOGI("CLASS COUNT: %p", klass);
         auto name = const_cast<char *>(Il2Cpp::GetClassName(const_cast<void *>(klass)));
+        LOGI("CLASS NAME: %s", name);
         auto nameSpace = const_cast<char *>(Il2Cpp::GetClassNamespace(const_cast<void *>(klass)));
+        LOGI("CLASS NAMESPACE: %s", nameSpace);
         auto methods = dumpMethods(const_cast<void *>(klass));
         auto fields = dumpFields(const_cast<void *>(klass));
         auto properties = dumpProperties(const_cast<void *>(klass));
@@ -216,13 +239,19 @@ string dumpImage(const char* imageName){
     return output.str();
 }
 
+vector<const void*> images;
+
+std::stringstream output;
+
 void Dump() {
 
-    std::stringstream output;
-
     output << "Dump: \n \n \n";
-    
-    output << dumpImage("Assembly-CSharp.dll");
+
+    /*LOGI("Dumping %zu images...", images.size());
+    for (int i = 0; i < images.size(); ++i) {
+        LOGI("Image %d pointer: %p", i, images[i]);
+        output << dumpClass(images2[i]);
+    }*/
 
     auto directory = std::string("/storage/emulated/0/Android/data/").append(
             GetPackageName()).append("/dump.cs");
@@ -231,6 +260,19 @@ void Dump() {
     std::ofstream outStream(outputPath);
     outStream << output.str();
     outStream.close();
+}
+
+void* (*orig_il2cpp_class_from_name)(const void* image, const char* ns, const char* name);
+
+void* my_il2cpp_class_from_name(const void* image, const char* ns, const char* name) {
+    LOGI("il2cpp_class_from_name called! image: %p, ns: %s, class: %s", image, ns, name);
+
+    if (!std::count(images.begin(), images.end(), image)) {
+        images.push_back(image);
+        output << dumpImage(image);
+    }
+
+    return orig_il2cpp_class_from_name(image, ns, name);
 }
 
 __attribute__ ((constructor))
@@ -247,6 +289,22 @@ void lib_main() {
             LOGE("Il2Cpp::Init Failed!");
             return;
         }
+
+        void* handle = dlopen("libil2cpp.so", RTLD_LAZY);
+        if (handle) {
+            void* target_func = dlsym(handle, "il2cpp_class_from_name");
+            if (target_func) {
+                DobbyHook(target_func, reinterpret_cast<dobby_dummy_func_t>(my_il2cpp_class_from_name), reinterpret_cast<dobby_dummy_func_t*>(&orig_il2cpp_class_from_name));
+                LOGI("Hooked il2cpp_class_from_name successfully!");
+            } else {
+                LOGI("Failed to find il2cpp_class_from_name symbol");
+            }
+        } else {
+            LOGI("Failed to load libil2cpp.so");
+        }
+
+
+        sleep(10);
         Dump();
     }).detach();
 }
