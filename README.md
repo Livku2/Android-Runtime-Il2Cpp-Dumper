@@ -38,12 +38,7 @@ It should look something like this
 
 
 ### Known Issues
-Sometimes the lib may cause crashes, this is most likely caused by the GetImageByName function as il2cpp_domain_get_assemblies can return nullptr
-
-I am still working on a fix for this but haven't found a work around just yet
-
-
-Recently I have fixed this error, but another one came up so I am working on fixing that
+slight formatting problem but nothing huge, just a few spaces
 
 ### Credit
 
