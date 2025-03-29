@@ -21,15 +21,6 @@ It should look something like this
 ![image](https://github.com/user-attachments/assets/6c57ee92-b97d-4e31-921a-ac5fa135fe60)
 
 
-### Changing the target assembly
-
-1. Clone the repo with ``` git clone --recurse-submodules https://github.com/Livku2/Quest-Modding-Lib-Template](https://github.com/Livku2/Android-Runtime-Il2Cpp-Dumper ```
-2. Open the project in Android Studio
-4. Modify the string that says "Assembly-CSharp.dll" to the name of whatever assembly you want
-5. Build the project
-6. Copy the generated .so from `app/build/outputs/native/release/libLivkuDumper.so`
-
-
 ### Todo
 
 - [x] Dump all assemblies
