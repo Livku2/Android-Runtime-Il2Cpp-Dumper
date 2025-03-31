@@ -34,3 +34,6 @@ slight formatting problem but nothing huge, just a few spaces
 ### Credit
 
 - [Zygisk Il2CppDumper](https://github.com/Perfare/Zygisk-Il2CppDumper) - Dumper I used as a reference
+
+just realised I forgot to say but some code, such as the attribute code comes directly from this dumper
+
