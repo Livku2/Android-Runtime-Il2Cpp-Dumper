@@ -25,7 +25,8 @@ It should look something like this
 
 - [x] Dump all assemblies
 - [x] Fix Method Offsets
-- [x] Fix Formatting
+- [ ] Fix Formatting
+- [ ] Some games have obfuscated names for their il2cpp symbols, I will try to find a work around
 
 
 ### Known Issues
