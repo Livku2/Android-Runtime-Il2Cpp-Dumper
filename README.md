@@ -1,3 +1,6 @@
+# OUTDATED PLEASE GO TO https://github.com/Livku2/LivkuDumper
+
+
 ## Android Runtime Il2cpp Dumper
 
 A runtime dumper for android
